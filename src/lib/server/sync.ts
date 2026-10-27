@@ -81,13 +81,11 @@ export function normalizeGoogleEvent(
         ?.uri ?? raw.hangoutLink,
     ),
     htmlLink: safeExternalUrl(raw.htmlLink),
-    attendees: raw.attendees
-      ?.slice(0, 100)
-      .map((a) => ({
-        name: a.displayName ?? a.email ?? "Guest",
-        email: a.email ?? "",
-        response: a.responseStatus ?? "needsAction",
-      })),
+    attendees: raw.attendees?.slice(0, 100).map((a) => ({
+      name: a.displayName ?? a.email ?? "Guest",
+      email: a.email ?? "",
+      response: a.responseStatus ?? "needsAction",
+    })),
   };
 }
 async function discover(job: SyncJob) {
@@ -329,6 +327,13 @@ export async function syncConnection(job: SyncJob) {
         data: { status: "reconnect", lastError: code },
       });
     else if (code === "ACCESS_RESTRICTED") {
+      await db().googleConnection.updateMany({
+        where: {
+          id: connection.id,
+          credentialVersion: connection.credentialVersion,
+        },
+        data: { lastError: code },
+      });
       await db().calendarSource.updateMany({
         where: { connectionId: connection.id },
         data: {
@@ -345,6 +350,11 @@ export async function syncConnection(job: SyncJob) {
         where: { id: connection.id },
         data: { lastError: code },
       });
-    if (code !== "REAUTH_REQUIRED" && code !== "ACCESS_RESTRICTED") throw error;
+    if (
+      code !== "REAUTH_REQUIRED" &&
+      code !== "ACCESS_RESTRICTED" &&
+      code !== "CALENDAR_API_DISABLED"
+    )
+      throw error;
   }
 }

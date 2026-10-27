@@ -680,7 +680,8 @@ export function Schedule() {
       </div>
       <footer className="calendar-footer">
         <span>
-          <i className="footer-dot" />A little more room for what matters.
+          <i className="footer-dot" />
+          Read-only Google Calendar
         </span>
         <span>
           All times in {preferences.timeZone}

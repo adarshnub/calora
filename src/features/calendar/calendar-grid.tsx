@@ -11,7 +11,7 @@ import interactionPlugin from "@fullcalendar/react/interaction";
 import "@fullcalendar/react/skeleton.css";
 import "@fullcalendar/react/themes/monarch/theme.css";
 import { useWorkspace } from "@/components/workspace";
-import { formatTime, today } from "@/lib/shared/dates";
+import { formatTime } from "@/lib/shared/dates";
 import type { Connection, EventGroup, TimeView } from "@/lib/shared/types";
 import { AlertCircle, Video } from "lucide-react";
 const plugins = [themePlugin, timeGridPlugin, dayGridPlugin, interactionPlugin];
@@ -107,6 +107,22 @@ export default function CalendarGrid(props: Props) {
 }
 function Grid({ events, date, view, onOpen, onDateClick }: Props) {
   const { preferences } = useWorkspace();
+  function timeRange(event: EventGroup) {
+    let start = formatTime(
+      event.start,
+      preferences.timeZone,
+      preferences.clock,
+    );
+    let end = formatTime(event.end, preferences.timeZone, preferences.clock);
+    if (preferences.clock === "12") {
+      start = start.replace(":00", "");
+      end = end.replace(":00", "");
+      const period = start.match(/(AM|PM)$/)?.[1];
+      if (period && end.endsWith(period))
+        start = start.replace(/\s*(AM|PM)$/, "");
+    }
+    return `${start}–${end}`;
+  }
   const input = useMemo(
     () =>
       events.map((e) => ({
@@ -129,20 +145,28 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
   const renderEvent = useCallback(
     (info: EventDisplayInfo) => {
       const e = info.event.extendedProps.group as EventGroup;
+      const duration = Date.parse(e.end) - Date.parse(e.start);
+      const density = e.allDay
+        ? "all-day-event"
+        : duration <= 15 * 60000
+          ? "event-micro"
+          : duration <= 30 * 60000
+            ? "event-short"
+            : duration < 60 * 60000
+              ? "event-compact"
+              : "";
       return (
-        <div
-          className={`event-content color-${e.color} ${e.allDay ? "all-day-event" : Date.parse(e.end) - Date.parse(e.start) <= 3600000 ? "event-compact" : ""}`}
-        >
-          <div className="event-time">
-            {!e.allDay
-              ? `${formatTime(e.start, preferences.timeZone, preferences.clock)} – ${formatTime(e.end, preferences.timeZone, preferences.clock)}`
-              : null}
-            {e.conflicts.length ? <AlertCircle size={11} /> : null}
+        <div className={`event-content color-${e.color} ${density}`}>
+          <div className="event-title-row">
+            <span className="event-title">{e.title}</span>
+            {e.conflicts.length ? (
+              <AlertCircle size={12} aria-hidden="true" />
+            ) : null}
           </div>
-          <span className="event-title">{e.title}</span>
+          {!e.allDay ? <div className="event-time">{timeRange(e)}</div> : null}
           {!e.allDay ? (
             <div className="event-source">
-              <span>{e.accountLabel}</span>
+              <span className="event-source-label">{e.accountLabel}</span>
               {e.meetingUrl ? <Video size={12} /> : null}
               {e.copies.length > 1 ? <span>+{e.copies.length - 1}</span> : null}
             </div>
@@ -154,7 +178,6 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
   );
   const renderHeader = useCallback(
     (info: DayHeaderInfo) => {
-      const d = info.date.toISOString().slice(0, 10);
       return (
         <div className={`grid-day-heading ${info.isToday ? "is-today" : ""}`}>
           <span>
@@ -190,6 +213,7 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
         weekends={preferences.showWeekends}
         events={input}
         eventContent={renderEvent}
+        eventInnerClass="calora-event-inner"
         eventClass={(info) =>
           `calora-event event-${(info.event.extendedProps.group as EventGroup).color}`
         }
@@ -199,14 +223,15 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
         }}
         eventInteractive={true}
         eventDidMount={(info) => {
-          info.el.setAttribute(
-            "aria-label",
-            `${info.event.title}, ${(info.event.extendedProps.group as EventGroup).accountLabel}`,
-          );
+          const event = info.event.extendedProps.group as EventGroup;
+          const description = `${event.title}, ${event.allDay ? "all day" : timeRange(event)}, ${event.accountLabel}, ${event.calendarTitle}`;
+          info.el.setAttribute("aria-label", description);
+          info.el.setAttribute("title", description);
         }}
         dayHeaderContent={renderHeader}
         dayHeaderClass="calora-day-header"
         dayCellClass={(info) => (info.isToday ? "calora-today" : "")}
+        dayLaneClass={(info) => (info.isToday ? "calora-current-day" : "")}
         slotLaneClass="calora-slot"
         allDayHeaderContent="All day"
         allDayHeaderClass="calora-all-day-label"
@@ -214,7 +239,7 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
         slotMaxTime="24:00:00"
         scrollTime="08:00:00"
         slotDuration="00:30:00"
-        slotMinHeight={24}
+        slotMinHeight={36}
         slotHeaderInterval="01:00:00"
         slotHeaderClass="calora-time-header"
         slotHeaderInnerClass="calora-time-label"
@@ -229,7 +254,8 @@ function Grid({ events, date, view, onOpen, onDateClick }: Props) {
           minute: "2-digit",
           hour12: preferences.clock === "12",
         }}
-        eventMinHeight={38}
+        eventMinHeight={28}
+        slotEventOverlap={false}
         businessHours={{
           startTime: preferences.workingStart,
           endTime: preferences.workingEnd,

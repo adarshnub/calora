@@ -27,6 +27,13 @@ export function providerError(error: unknown) {
   };
   const status = e.response?.status ?? e.code;
   const category = JSON.stringify(e.response?.data?.error ?? "");
+  if (
+    status === 403 &&
+    ["accessNotConfigured", "SERVICE_DISABLED", "serviceDisabled"].some(
+      (reason) => category.includes(reason),
+    )
+  )
+    return new AppError("CALENDAR_API_DISABLED", 403);
   if (status === 401 || category.includes("invalid_grant"))
     return new AppError("REAUTH_REQUIRED", 401);
   if ((status === 403 && !category.includes("rateLimit")) || status === 404)

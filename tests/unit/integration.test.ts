@@ -55,6 +55,16 @@ describe("Google pagination", () => {
       "RATE_LIMITED",
     );
   });
+  it("identifies disabled Calendar API separately from account permissions", () => {
+    for (const error of [
+      { errors: [{ reason: "accessNotConfigured" }] },
+      { details: [{ reason: "SERVICE_DISABLED" }] },
+    ]) {
+      expect(
+        providerError({ response: { status: 403, data: { error } } }).code,
+      ).toBe("CALENDAR_API_DISABLED");
+    }
+  });
 });
 describe("encrypted credentials", () => {
   it("roundtrips tokens using authenticated account-bound encryption", () => {

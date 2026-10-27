@@ -13,7 +13,8 @@ import {
   Link2,
   ChevronDown,
 } from "lucide-react";
-import { useWorkspace } from "@/components/workspace";
+import { api, useWorkspace } from "@/components/workspace";
+import { addDays } from "@/lib/shared/dates";
 import {
   Button,
   CheckBox,
@@ -33,12 +34,33 @@ export function Accounts() {
     updateConnection,
     removeConnection,
     notify,
+    date,
+    preferences,
   } = useWorkspace();
   const [editing, setEditing] = useState<Connection | null>(null),
     [disconnect, setDisconnect] = useState<Connection | null>(null),
     [label, setLabel] = useState(""),
     [color, setColor] = useState<Color>("green"),
-    [saving, setSaving] = useState(false);
+    [saving, setSaving] = useState(false),
+    [refreshing, setRefreshing] = useState(false);
+  async function refreshCalendars() {
+    setRefreshing(true);
+    try {
+      await api("/api/sync", {
+        method: "POST",
+        body: JSON.stringify({
+          start: addDays(date, -7),
+          end: addDays(date, 14),
+          timeZone: preferences.timeZone,
+        }),
+      });
+      notify("Calendar discovery queued. Your calendars will update shortly.");
+    } catch {
+      notify("Calendar discovery could not start. Please try again.");
+    } finally {
+      setRefreshing(false);
+    }
+  }
   function edit(c: Connection) {
     setEditing(c);
     setLabel(c.label);
@@ -85,6 +107,15 @@ export function Accounts() {
             {connections.reduce((n, c) => n + c.sources.length, 0)} calendars
           </span>
         </div>
+        {connections.length > 0 ? (
+          <IconButton
+            label="Refresh calendars"
+            onClick={refreshCalendars}
+            disabled={refreshing}
+          >
+            <RefreshCw size={16} />
+          </IconButton>
+        ) : null}
         <span>
           <ShieldCheck size={15} />
           Read-only access. Always yours.
@@ -101,14 +132,18 @@ export function Accounts() {
                 <h2>
                   {c.label}
                   <span
-                    className={`connection-status ${c.status === "reconnect" ? "warning" : ""}`}
+                    className={`connection-status ${c.status === "reconnect" || c.lastError ? "warning" : ""}`}
                   >
                     <i />
-                    {c.status === "connected"
-                      ? "Connected"
-                      : c.status === "reconnect"
-                        ? "Reconnect needed"
-                        : c.status}
+                    {c.status === "reconnect"
+                      ? "Reconnect needed"
+                      : c.lastError === "CALENDAR_API_DISABLED"
+                        ? "Calendar API disabled"
+                        : c.lastError
+                          ? "Sync issue"
+                          : c.status === "connected"
+                            ? "Connected"
+                            : c.status}
                   </span>
                 </h2>
                 <p>{c.email}</p>
@@ -137,10 +172,35 @@ export function Accounts() {
             </div>
             {c.lastError ? (
               <div className="account-error">
-                {c.status === "reconnect"
-                  ? "Google needs your permission again. Reconnect to refresh this account."
-                  : "This account could not finish refreshing. Other calendars remain available."}
-                <button onClick={() => connect(c.id)}>Review connection</button>
+                <span>
+                  {c.lastError === "CALENDAR_API_DISABLED" ? (
+                    <>
+                      Google Calendar API is disabled for this app. Enable it in{" "}
+                      <a
+                        href="https://console.cloud.google.com/apis/library/calendar-json.googleapis.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Google Cloud
+                      </a>
+                      , then retry discovery.
+                    </>
+                  ) : c.status === "reconnect" ? (
+                    "Google needs your permission again. Reconnect to refresh this account."
+                  ) : (
+                    "This account could not finish refreshing. Other calendars remain available."
+                  )}
+                </span>
+                {c.status === "reconnect" ||
+                c.lastError === "ACCESS_RESTRICTED" ? (
+                  <button onClick={() => connect(c.id)}>
+                    Review connection
+                  </button>
+                ) : (
+                  <button disabled={refreshing} onClick={refreshCalendars}>
+                    Retry discovery
+                  </button>
+                )}
               </div>
             ) : null}
             <div className="connection-calendars">
@@ -186,6 +246,12 @@ export function Accounts() {
                   />
                 </div>
               ))}
+              {!c.sources.length && !c.lastError ? (
+                <p className="calendar-discovery-empty">
+                  No calendars have been discovered yet. Refresh calendars to
+                  retry.
+                </p>
+              ) : null}
             </div>
             <div className="connection-footer">
               <span>
