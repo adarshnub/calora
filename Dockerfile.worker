@@ -1,0 +1,22 @@
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates openssl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Prisma's postinstall needs the schema and configuration, but no database access.
+COPY package.json package-lock.json ./
+COPY prisma ./prisma
+COPY prisma.config.ts tsconfig.json ./
+RUN npm ci --include=dev
+
+COPY src ./src
+COPY workers ./workers
+
+ENV NODE_ENV=production
+USER node
+
+# Run Node directly so the worker receives SIGTERM during daemon rollouts.
+CMD ["node", "--conditions=react-server", "--import=tsx", "workers/calendar.ts"]

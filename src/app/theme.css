@@ -1,0 +1,119 @@
+:root {
+  color-scheme: light;
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --rail: #f2f5f1;
+  --rail-active: #e3ebe1;
+  --soft: #f7f9f6;
+  --hover: #e8eee5;
+  --text: #252c28;
+  --muted: #63705f;
+  --faint-text: #798575;
+  --border: #e3e9e1;
+  --border-strong: #a9b8a4;
+  --accent: #2c5948;
+  --accent-hover: #214735;
+  --accent-soft: #e7efe4;
+  --on-accent: #ffffff;
+  --control-ink: #ffffff;
+  --avatar-bg: #2c5948;
+  --avatar-ink: #ffffff;
+  --switch-thumb: #ffffff;
+  --overlay: #14251b66;
+  --warning-bg: #fbf1e3;
+  --warning-text: #8a581c;
+  --warning-border: #e5c9a2;
+  --danger-bg: #ad4939;
+  --danger-text: #a33f32;
+  --green: #558264;
+  --green-soft: #eaf2e9;
+  --green-text: #315239;
+  --green-edge: #558264;
+  --orange: #b96e46;
+  --orange-soft: #fff0e8;
+  --orange-text: #7c442b;
+  --orange-edge: #cb805d;
+  --purple: #8765ac;
+  --purple-soft: #f1ecf9;
+  --purple-text: #624780;
+  --purple-edge: #9981bd;
+  --blue: #587fa8;
+  --blue-soft: #eaf1fa;
+  --blue-text: #385c80;
+  --blue-edge: #7091b9;
+  --shadow: 0 8px 28px #182c1d14;
+  --dialog-shadow: 0 24px 100px #18312335;
+  --drawer-shadow: -12px 0 70px #1d352719;
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #151f19;
+  --surface: #1d2a21;
+  --rail: #111b15;
+  --rail-active: #293e2e;
+  --soft: #1a271e;
+  --hover: #2a3b2e;
+  --text: #e6eee7;
+  --muted: #a9b9ac;
+  --faint-text: #8d9e90;
+  --border: #304336;
+  --border-strong: #607966;
+  --accent: #acd0b5;
+  --accent-hover: #c4dfcb;
+  --accent-soft: #293f30;
+  --on-accent: #142c1d;
+  --control-ink: #142319;
+  --avatar-bg: #365740;
+  --avatar-ink: #e7f1e9;
+  --switch-thumb: #edf4ef;
+  --overlay: #030a06b3;
+  --warning-bg: #3b3020;
+  --warning-text: #edc28b;
+  --warning-border: #735936;
+  --danger-bg: #a84237;
+  --danger-text: #f0aaa0;
+  --green: #a0c4a5;
+  --green-soft: #2a4130;
+  --green-text: #d0e6d2;
+  --green-edge: #7aab83;
+  --orange: #e5b08e;
+  --orange-soft: #473326;
+  --orange-text: #f3d4bd;
+  --orange-edge: #cf9c77;
+  --purple: #c7aadd;
+  --purple-soft: #3b2f49;
+  --purple-text: #e7d5f4;
+  --purple-edge: #b594ce;
+  --blue: #a0c0df;
+  --blue-soft: #293c4c;
+  --blue-text: #d0e4f5;
+  --blue-edge: #83abcf;
+  --shadow: 0 8px 28px #00000038;
+  --dialog-shadow: 0 24px 100px #00000080;
+  --drawer-shadow: -12px 0 70px #00000050;
+}
+
+html.theme-changing *,
+html.theme-changing *::before,
+html.theme-changing *::after {
+  transition: none !important;
+}
+
+.button.danger {
+  color: #ffffff;
+}
+.button.danger:hover {
+  background: var(--danger-bg);
+  filter: brightness(1.1);
+}
+.color-option {
+  color: var(--control-ink);
+}
+.toggle.on > span {
+  background: var(--on-accent);
+}
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}

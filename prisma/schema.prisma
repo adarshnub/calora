@@ -1,0 +1,171 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  emailVerified Boolean  @default(false)
+  image         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+  connections   GoogleConnection[]
+  transactions  OAuthTransaction[]
+  preferences   UserPreference?
+  savedViews    SavedView[]
+}
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+}
+model Account {
+  id                     String @id
+  accountId              String
+  providerId             String
+  userId                 String
+  user                   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken            String?
+  refreshToken           String?
+  idToken                String?
+  accessTokenExpiresAt   DateTime?
+  refreshTokenExpiresAt  DateTime?
+  scope                  String?
+  password               String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  @@unique([providerId, accountId])
+  @@index([userId])
+}
+model Verification {
+  id         String @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  @@index([identifier])
+}
+model GoogleConnection {
+  id                String @id @default(cuid())
+  ownerId           String
+  owner             User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  googleSub         String
+  email             String
+  label             String
+  color             String @default("green")
+  grantedScopes     String[]
+  encryptedTokens   String
+  tokenExpiry       DateTime?
+  status            String @default("connected")
+  credentialVersion Int @default(1)
+  lastError         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  sources           CalendarSource[]
+  @@unique([ownerId, googleSub])
+  @@index([ownerId, status])
+}
+model OAuthTransaction {
+  id           String @id @default(cuid())
+  stateHash    String @unique
+  ownerId      String
+  owner        User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  sessionHash  String
+  nonce        String
+  verifier     String
+  purpose      String
+  expectedSub  String?
+  returnPath   String
+  expiresAt    DateTime
+  consumedAt   DateTime?
+  @@index([expiresAt])
+}
+model CalendarSource {
+  id                  String @id @default(cuid())
+  connectionId        String
+  connection          GoogleConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+  googleCalendarId    String
+  title               String
+  timeZone            String @default("UTC")
+  accessRole          String
+  accessStatus        String @default("available")
+  accessStatusVersion Int @default(1)
+  primary             Boolean @default(false)
+  selected            Boolean @default(false)
+  displayColor        String?
+  lastDiscoveredAt    DateTime @default(now())
+  lastError           String?
+  references          EventReference[]
+  snapshots           CalendarSnapshot[]
+  @@unique([connectionId, googleCalendarId])
+  @@index([connectionId])
+}
+model EventReference {
+  id            String @id @default(cuid())
+  sourceId      String
+  source        CalendarSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  googleEventId String
+  events        SnapshotEvent[]
+  @@unique([sourceId, googleEventId])
+}
+model CalendarSnapshot {
+  id            String @id @default(cuid())
+  sourceId      String
+  source        CalendarSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  rangeStart    DateTime
+  rangeEnd      DateTime
+  queryZone     String
+  queryVersion  Int @default(1)
+  generation    String
+  status        String @default("staging")
+  fetchedAt     DateTime @default(now())
+  expiresAt     DateTime
+  events        SnapshotEvent[]
+  @@index([sourceId, rangeStart, rangeEnd, status])
+  @@index([expiresAt])
+}
+model SnapshotEvent {
+  id               String @id @default(cuid())
+  snapshotId       String
+  snapshot         CalendarSnapshot @relation(fields: [snapshotId], references: [id], onDelete: Cascade)
+  eventReferenceId String
+  eventReference   EventReference @relation(fields: [eventReferenceId], references: [id], onDelete: Cascade)
+  googleEventId    String
+  startInstant     DateTime?
+  endInstant       DateTime?
+  startDate        String?
+  endDate          String?
+  data             Json
+  @@unique([snapshotId, googleEventId])
+  @@index([snapshotId, startInstant])
+  @@index([snapshotId, startDate])
+}
+model UserPreference {
+  ownerId String @id
+  owner   User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  data    Json
+}
+model SavedView {
+  id          String @id @default(cuid())
+  ownerId     String
+  owner       User @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name        String
+  sourceIds   String[]
+  mode        String @default("merged")
+  @@index([ownerId])
+}

@@ -1,0 +1,12 @@
+.git
+.next
+.qodo
+node_modules
+src/generated
+.env
+.env.*
+tests
+test-results
+playwright-report
+docs
+*.tsbuildinfo

@@ -1,0 +1,9 @@
+# Calora interface
+
+The primary design concept is the generated desktop workspace: a quiet sage navigation rail, white calendar canvas, fine gray rules, forest green actions, and soft green, terracotta, and violet event blocks. Native UI uses Geist, 16px body text, 13–14px supporting text, an 8px spacing rhythm, 6–10px radii, and Lucide outline icons. The 240px rail and 64px top bar frame an open workspace. All controls, logos, and calendar events are code-native.
+
+Schedule presents the heading “Your time, together.”, date navigation, presentation modes, a time view selector, and a weekly calendar. Accounts and Settings use the same shell. Event details appear in a drawer. Search and keyboard shortcuts use accessible dialogs. Mobile replaces the rail with labelled bottom navigation, defaults to an agenda, and uses full-height sheets for filters and details. Preferences persist without storing private calendar content in browser storage.
+
+Semantic colors live in `src/app/theme.css`. Light appearance uses white surfaces, a sage rail, and forest green actions. Dark appearance uses deep green surfaces, clear muted text, restrained borders, and mint actions with dark foregrounds. Green, orange, purple, and blue events have distinct background, foreground, and edge tokens in each appearance. FullCalendar uses these same tokens for every grid area and popover. Controls, warnings, menus, drawers, mobile sheets, and focus indicators adapt together. Appearance is applied before body paint, follows system changes, and briefly disables color transitions during a theme switch. Motion respects reduced-motion preferences.
+
+An unconfigured checkout shows an empty setup workspace with no invented identity, accounts, or events. Only authenticated Google Calendar observations populate the product. Synthetic calendar records are confined to isolated tests.
