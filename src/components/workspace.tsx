@@ -57,6 +57,7 @@ import {
 import type { Connection, Preferences, SavedView } from "@/lib/shared/types";
 import { APPEARANCE_KEY, applyAppearance } from "@/lib/shared/appearance";
 import { preferencesSchema } from "@/lib/shared/schemas";
+import { Cally } from "./cally";
 
 type Boot = {
   ownerId: string;
@@ -543,6 +544,7 @@ function WorkspaceInner({
           </main>
         </div>
         <PrimaryNav active={active} mobile />
+        <Cally />
         <Modal
           open={connectOpen}
           onOpenChange={setConnectOpen}
