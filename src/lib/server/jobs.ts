@@ -1,6 +1,8 @@
 import "server-only";
 import { PgBoss } from "pg-boss";
 import { digest } from "./crypto";
+import { sessionDatabaseUrl } from "./database-url";
+import { databaseConnectionOptions } from "./database-connection";
 export type SyncJob = {
   ownerId: string;
   connectionId: string;
@@ -14,8 +16,7 @@ let bossPromise: Promise<PgBoss> | undefined;
 export function jobs(worker = false) {
   return (bossPromise ??= (async () => {
     const boss = new PgBoss({
-      connectionString:
-        process.env.DIRECT_DATABASE_URL || process.env.DATABASE_URL!,
+      ...databaseConnectionOptions(sessionDatabaseUrl()),
       max: worker ? 4 : 2,
       application_name: "calora",
       supervise: worker,

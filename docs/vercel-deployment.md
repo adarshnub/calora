@@ -19,6 +19,10 @@ Create a Supabase project for Calora, then open **Connect**. Copy two PostgreSQL
 
 Copy the exact host and username from the Connect dialog; do not guess the pooler host from the region. Replace the password placeholder with your **database password**, percent-encoding special characters, and include `sslmode=require`. Supabase's shared poolers support IPv4. Its direct connection normally requires IPv6 or the IPv4 add-on, so the session pooler avoids that connectivity problem. Do not use a transaction-pooler URL for `DIRECT_DATABASE_URL`: migrations need session continuity. See [Supabase's connection guide](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
+If an existing Vercel configuration still has a Supabase direct URL in `DIRECT_DATABASE_URL`, Calora routes migrations and the job queue through the shared pooler host already configured in `DATABASE_URL`, using session mode on port `5432`. It preserves the migration role and password and checks that both URLs refer to the same project and database. Other providers and direct connections outside Vercel are unchanged. The preferred explicit configuration is still the two pooler URLs above.
+
+The Node PostgreSQL connections use the public Supabase Root 2021 CA bundled in `src/lib/server/supabase-ca.ts`, sourced from Supabase's official dashboard download URL. This verifies the server certificate and hostname without disabling TLS checks. An explicitly configured `sslrootcert` is preserved. See [Supabase SSL configuration](https://supabase.com/docs/guides/platform/ssl-enforcement).
+
 For this dedicated Calora project, **disable the Supabase Data API** in the dashboard. Calora accesses PostgreSQL through server-side Prisma and handles Google sign-in with Better Auth; it does not use Supabase Auth or browser database access. Supabase explicitly recommends disabling the Data API for Prisma-only applications. See [Supabase's Prisma guide](https://supabase.com/docs/guides/database/prisma) and [Data API settings](https://supabase.com/docs/guides/api/securing-your-api#disable-the-data-api).
 
 Use a database role that can apply the Prisma migrations and create the `pgboss` schema. A new project's database owner connection can perform the initial setup. No Supabase URL, anon/publishable key, or service-role/secret API key is needed. A `prisma+postgres://` URL is also unsuitable: this app uses the PostgreSQL `pg` driver.
@@ -112,6 +116,8 @@ Common configuration symptoms:
 | Accounts connect but events stay loading | Worker logs, session-pooler URL on port 5432, schema privileges, Calendar scopes      |
 | Database cannot be reached               | Hosted hostname, port, credentials, TLS, network policy; never localhost             |
 | Tokens cannot decrypt after redeploy     | Restore the same TOKEN_ENCRYPTION_KEY and TOKEN_KEY_VERSION                          |
+
+For Prisma `P1001` errors referencing `db.<project-ref>.supabase.co:5432`, check **Vercel Project Settings > Environment Variables > Production**. Set `DATABASE_URL` to Supabase's Transaction pooler URL (`6543`) and `DIRECT_DATABASE_URL` to its Session pooler URL (`5432`) for the same project, then redeploy. A local `.env.local` edit does not update Vercel. If the pooler also cannot connect, check whether the Supabase project is paused and whether its network restrictions allow the deployment.
 
 ## Preview deployments and beta limits
 

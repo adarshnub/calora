@@ -1,4 +1,4 @@
-import "dotenv/config";
+import { config as loadEnv } from "dotenv";
 import { jobs } from "../src/lib/server/jobs";
 import { syncConnection } from "../src/lib/server/sync";
 import { db } from "../src/lib/server/db";
@@ -6,6 +6,9 @@ import { configuration } from "../src/lib/server/config";
 import type { SyncJob } from "../src/lib/server/jobs";
 import { addDays, today } from "../src/lib/shared/dates";
 import { AppError } from "../src/lib/server/http";
+
+loadEnv({ path: [".env.local", ".env"], quiet: true });
+
 async function main() {
   configuration();
   const boss = await jobs(true);
