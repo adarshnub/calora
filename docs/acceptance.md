@@ -1,5 +1,13 @@
 ﻿# Acceptance results
 
+## Public documentation update — 27 October 2026
+
+Calora is deployed at [calora-lilac.vercel.app](https://calora-lilac.vercel.app) and requires owner sign-in. Google account connection and calendar discovery were verified during the deployment work. The original implementation results below are historical; they are not a fresh run for this documentation change.
+
+The README now includes eight screenshots captured from the implemented application with isolated browser network fixtures. Accounts, profile identity, and events in those images are fictional. All eight captures completed without application page errors and were visually inspected. No sample records were added to the application database or production runtime. Local README image/document links were checked for existence.
+
+## Original implementation checks
+
 Verified on Windows with Node 24.18.0, Chrome through Playwright, and PostgreSQL 17 in Docker. The in-app browser was unavailable; browser checks used installed Chrome. Desktop, settings, connection dialogs, and phone screenshots were inspected directly.
 
 | Check | Result |
@@ -22,4 +30,4 @@ Calendar interaction tests supply isolated Playwright network responses. Synthet
 
 Domain tests cover identity grouping, source privacy, recurrence, typed dates, DST, overlaps, encryption, OAuth binding/replay rejection, pagination, and provider failures. PostgreSQL checks exercise complete replacement, stable references, later-page failure, source restriction, disconnect races, and durable jobs using mocked provider responses.
 
-Live Google authorization requires the owner's OAuth credentials. Real Google expiry, Workspace policy, revocation, Firefox, physical Android/iOS devices, assistive technology, large text, mobile keyboard layouts, and constrained-network performance remain external checks. No public deployment has been made.
+At this original verification stage, live Google authorization and public deployment had not been exercised; deployment and discovery were subsequently completed as noted above. Real Google expiry, Workspace policy, revocation, Firefox, physical Android/iOS devices, assistive technology, large text, mobile keyboard layouts, and constrained-network performance remain external checks.

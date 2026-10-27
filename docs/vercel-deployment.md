@@ -52,7 +52,7 @@ Google requires an exact redirect match, including scheme and path. External app
 
 ## 4 Set Vercel Production environment variables
 
-Open **Project Settings → Environment Variables**. Add the following for the **Production** environment. `.env.example` and `.env.production.example` are templates; editing them does not configure Vercel.
+Open **Project Settings → Environment Variables**. Add the following for the **Production** environment. `.env.production.example` is a template; editing it does not configure Vercel.
 
 | Name                   | Value                                                                     |
 | ---------------------- | ------------------------------------------------------------------------- |
@@ -127,7 +127,7 @@ Daemons are in public beta and subject to [plan quotas](https://vercel.com/docs/
 
 ## Local development without Docker
 
-Copy `.env.example` to the git-ignored `.env` and fill in hosted database and development OAuth values. Use a separate development Supabase project for local testing. Then run:
+Copy `.env.production.example` to the git-ignored `.env.local` and fill in hosted database and development OAuth values. Set `BETTER_AUTH_URL=http://localhost:3000`. Use a separate development Supabase project for local testing. Then run:
 
 ```sh
 npm ci
@@ -135,7 +135,7 @@ npm run db:migrate
 npm run dev
 ```
 
-Run `npm run worker` in a second terminal with the same `.env`. Neither process requires local Docker. For a Vercel-only deployment, skip these local commands and set Production variables directly in Vercel.
+Run `npm run worker` in a second terminal with the same `.env.local`. Neither process requires local Docker. For a Vercel-only deployment, skip these local commands and set Production variables directly in Vercel.
 
 The production worker's `Dockerfile.worker` remains in the repository because Vercel Daemons build from a Dockerfile. `vercel dev` does not start the worker automatically.
 
